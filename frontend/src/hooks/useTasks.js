@@ -9,6 +9,7 @@ export function useTasks(query, status, page, pageSize) {
 
   useEffect(() => {
     setLoading(true);
+    setError(null);  // Reset error state before fetching new data
 
     fetchTasks({ query, status, page, pageSize })
       .then((data) => {
@@ -18,6 +19,7 @@ export function useTasks(query, status, page, pageSize) {
       })
       .catch((err) => {
         setError(err.message);
+        setLoading(false); // Set loading to false even if there's an error
       });
   }, [query, status, page, pageSize]);
 

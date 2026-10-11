@@ -13,11 +13,43 @@ export default function App() {
 
   const totalPages = Math.ceil(total / 10);
 
+  // CSV Export Handler function
+  const handleExportCSV = () => {
+    if (!tasks || tasks.length === 0) return;
+    
+    const headers = ['ID', 'Title', 'Description', 'Status', 'Priority', 'Assignee', 'Created At'];
+    const rows = tasks.map(t => [
+      t.id,
+      `"${(t.title || '').replace(/"/g, '""')}"`,
+      `"${(t.description || '').replace(/"/g, '""')}"`,
+      t.status,
+      t.priority || '',
+      t.assignee || '',
+      t.createdAt || ''
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'tasks_export.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Task Tracker</h1>
-        <p className="subtitle">Internal task management</p>
+        <div>
+          <h1>Task Tracker</h1>
+          <p className="subtitle">Internal task management</p>
+        </div>
+        <button className="export-btn" onClick={handleExportCSV} disabled={tasks.length === 0}>
+          Export CSV 📊
+        </button>
       </header>
 
       <div className="controls">
@@ -25,7 +57,16 @@ export default function App() {
         <StatusFilter value={status} onChange={setStatus} />
       </div>
 
+      {/* Task Table */}
       <TaskTable tasks={tasks} loading={loading} error={error} />
+
+      {/* Empty State UI Handling */}
+      {!loading && !error && tasks.length === 0 && (
+        <div className="empty-state" style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+          <h3>No tasks found 📭</h3>
+          <p>Try adjusting your search query or status filter.</p>
+        </div>
+      )}
 
       {totalPages > 1 && (
         <div className="pagination">
